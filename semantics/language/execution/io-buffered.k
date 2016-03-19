@@ -48,7 +48,7 @@ module C-IO-BUFFERED
      rule <k> setModified(Loc::SymLoc, T::Type)
                => setModified(Loc, byteSizeofType(T), .K, Modified)
           ...</k>
-          <activeBlocks> Modified:Map </activeBlocks>
+          <active-blocks> Modified:Map </active-blocks>
 
      syntax KItem ::= updateModified(K, SymLoc, Int) [function]
      rule updateModified(activity(N::Int, M::Map), Loc::SymLoc, I::Int)
@@ -58,9 +58,9 @@ module C-IO-BUFFERED
      rule <k> setModified(Loc::SymLoc, Size::Int,
                 (Tag::Scope => .K), _)
            ...</k>
-           <activeBlocks>...
+           <active-blocks>...
                 Tag |-> (Offsets:K => updateModified(Offsets, Loc, Size))
-           ...</activeBlocks>
+           ...</active-blocks>
      rule setModified(Loc::SymLoc, Size::Int, .K, K:K |-> _ M::Map)
           => setModified(Loc, Size, K, M)
      rule setModified(_, _, .K, .Map) => .K
@@ -105,6 +105,8 @@ module C-IO-BUFFERED
           requires // Bounds.
                (Offset +Int Size -Int 1 <Int Len)
                andBool Offset >=Int 0
+     rule <k> checkBounds(Loc::SymLoc, _) => .K ...</k>
+          requires isNativeLoc(Loc)
      rule <k> (.K => UNDEF("EIO2",
                "Trying to write outside the bounds of an object.",
                "6.5.6:8, J.2:1 item 47"))

@@ -8,6 +8,7 @@ module C-ENV-SYNTAX
      syntax KItem ::= addEnum(CId, Int)
      syntax KItem ::= "populateFromGlobal"
      syntax KItem ::= scope(Scope, K)
+     syntax KItem ::= noEval(K)
      syntax KItem ::= "recover"
 endmodule
 
@@ -88,22 +89,29 @@ module C-ENV
               => pushLocals ~> K ~> popLocals ~> setScope(OldScope)
           ...</k>
           <curr-scope> OldScope:Scope => Scope </curr-scope>
+     rule <k> noEval(K:K)
+              => pushLocals ~> K ~> popLocals ~> setEval(OldEval)
+          ...</k>
+          <curr-eval-context> OldEval:EvalContext => noEval </curr-eval-context>
 
      syntax KItem ::= setScope(Scope)
      rule <k> setScope(Scope:Scope) => .K ...</k>
           <curr-scope> _ => Scope </curr-scope>
+     syntax KItem ::= setEval(EvalContext)
+     rule <k> setEval(Eval:EvalContext) => .K ...</k>
+          <curr-eval-context> _ => Eval </curr-eval-context>
 
      syntax KItem ::= "pushLocals" | "popLocals"
      rule <k> pushLocals => .K ...</k>
-          <local> C:Bag <local-types> LocalTypes:Map => .Map </local-types> </local>
+          <block-control> C:Bag <local-types> LocalTypes:Map => .Map </local-types> </block-control>
           <block-stack>
-               .List => ListItem(<local> C <local-types> LocalTypes </local-types> </local>)
+               .List => ListItem(<block-control> C <local-types> LocalTypes </local-types> </block-control>)
           ...</block-stack>
 
      rule <k> popLocals => .K ...</k>
-          (_:LocalCell => L)
+          (_:BlockControlCell => L)
           <block-stack>
-               ListItem(L:LocalCell) => .List
+               ListItem(L:BlockControlCell) => .List
           ...</block-stack>
 
      rule recover ~> (K:KItem => .K)
